@@ -1,0 +1,56 @@
+#!/bin/sh
+
+SWCONFIG=/sbin/swconfig
+
+FIELDS_TO_DISPLAY="RxFcsErr RxAlignErr RxRunt RxFragment RxTooLong RxBadByte TxUnderRun TxOverSize TxCollision TxAbortCol TxMultiCol TxSingleCol TxExcDefer TxDefer TxLateCol"
+
+show_port_info() {
+  if [ -z "$DATA" ]; then
+    IFS=" " DATA=$($SWCONFIG dev switch$1 port $2 show)
+  fi
+  echo $DATA
+}
+
+show_tag_port_info() {
+  show_port_info $1 $2 | grep $3 | awk '{print $3}'
+#  show_port_info $1 $2 | grep $3
+}
+
+
+config_switch() {
+  cat <<EOF
+graph_order $FIELDS_TO_DISPLAY
+graph_title Switch switch$1/port$2 error informations
+graph_args --base 1000
+graph_vlabel packets
+graph_category network
+graph_info This graph shows switch error informations of switch $1 port $2
+EOF
+  for FIELD in $FIELDS_TO_DISPLAY; do
+    echo "$FIELD.label $FIELD"
+    echo "$FIELD.type COUNTER"
+  done
+}
+
+fetch_switch() {
+  for FIELD in $FIELDS_TO_DISPLAY; do
+    echo "$FIELD.value "`show_tag_port_info $1 $2 $FIELD`
+  done
+}
+
+get_switch_number() {
+  echo $0 | sed 's/.*switch\([0-9]\+\).*/\1/'
+}
+
+get_port_number() {
+  echo $0 | sed 's/.*port\([0-9]\+\).*/\1/'
+}
+
+case $1 in
+  config)
+    config_switch `get_switch_number` `get_port_number`
+    ;;
+  *)
+    fetch_switch `get_switch_number` `get_port_number`
+    ;;
+esac    
