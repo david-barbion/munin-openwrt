@@ -29,7 +29,7 @@ Then create the directory `/usr/sbin/munin-node-plugin.d/`:
 mkdir -p /usr/sbin/munin-node-plugin.d/
 ```
 
-After that, put the the two scripts into this directory. Each script must be renamed/linked to match the switch device and port number:
+After that, put the the two scripts into this directory. Each script must be renamed/linked to match the switch device and port number. This depends on your device:
 
 ```
 mv switchif_switchX_portX switchif_switch0_port0
@@ -39,8 +39,14 @@ ln -s switcherr_switch0_port0 switcherr_switch0_port1
 chmod +x switchif_switch0_port0
 chmod +x switcherr_switch0_port0
 ```
-
 This will allow to monitor both port0 and port1 of switch0.
+
+For my TPLink Archer C5, ports 0 to 6 are available. Here are commands to enable monitoring of all ports:
+
+```
+for i in 1 2 3 4 5 6; do ln -s switchif_switch0_port0 switchif_switch0_port$i; done
+for i in 1 2 3 4 5 6; do ln -s switcherr_switch0_port0 switcherr_switch0_port$i; done
+```
 
 ## How to find switch and port informations
 
